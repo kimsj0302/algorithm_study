@@ -1,91 +1,45 @@
 #include<iostream>
 #include<vector>
-#include<queue>
-#include<algorithm>
-
-#define MAX 2010
+#define MAX 1010
 using namespace std;
 
-int level[MAX];
-vector<int> graph[MAX];
-int c[MAX][MAX],f[MAX][MAX];
-int work[MAX];
-int S,E;
-bool bfs(){
-    for(int i=0;i<MAX;i++) level[i]=-1;
-    level[S]=0;
-    queue<int> que;
-    que.push(0);
-    while(!que.empty()){
-        int now=que.front();
-        que.pop();
-        for(int i=0;i<graph[now].size();i++){
-            int next=graph[now][i];
-            if(level[next]== -1 && c[now][next]-f[now][next]>0){
-                level[next]=level[now]+1;
-                que.push(next);
-            }
-        }
-    }
-    return level[E] != -1 ;
-}
-
-int dfs(int now,int dest,int flow){
-    if(now==dest) return flow;
-    for(int &i=work[now];i<graph[now].size();i++){
-        int next=graph[now][i];
-        if(level[next] == level[now]+1 && c[now][next]-f[now][next]>0){
-            int re=dfs(next,dest,min(c[now][next]-f[now][next],flow));
-            if(re>0){
-                f[now][next]+=re;
-                f[next][now]-=re;
-                //cout << "flow " << now <<" to " << next << ":" << re<<endl;
-                return re;
-            }
+int visited[MAX];
+vector<int> node[MAX];
+int b[MAX];
+int dfs(int here){
+    if(visited[here]) return 0;
+    visited[here]=1;
+    for(int i=0;i<node[here].size();i++){
+        int there=node[here][i];
+        if(!b[there]||dfs(b[there])){
+            b[there]=here;
+            return 1;
         }
     }
     return 0;
 }
 
+int match(int n){
+    int sum=0;
+    for(int i=1;i<=n;i++){
+        for(int k=0;k<MAX;k++)
+            visited[k]=0;
+        if(dfs(i))sum++;
+    }
+    return sum;
+}
 
 int main(){
     int n,m;
     scanf("%d %d",&n,&m);
-    S=0;
-    E=n+m+1;
     for(int i=1;i<=n;i++){
-        int job;
-        scanf("%d",&job);
-        for(int j=0;j<job;j++){
+        int k;
+        scanf("%d",&k);
+        for(int j=0;j<k;j++){
             int tmp;
             scanf("%d",&tmp);
-            c[i][n+tmp]=1;
-            c[n+tmp][i]=1;
-            graph[i].push_back(n+tmp);
-            graph[n+tmp].push_back(i);
+            node[i].push_back(tmp);
         }
     }
-    for(int i=1;i<=n;i++){
-        c[S][i]=1;
-        c[i][S]=1;
-        graph[S].push_back(i);
-        graph[i].push_back(S);
-
-    }
-    for(int i=1;i<=m;i++){
-        c[n+i][E]=1;
-        c[E][n+i]=1;
-        graph[n+i].push_back(E);
-        graph[E].push_back(n+i);
-    }
-    int ans=0;
-    while(bfs()){
-        for(int i=0;i<MAX;i++) work[i]=0;
-        while(1){
-            int flow=dfs(S,E,10000);
-            if(!flow) break;
-            ans+=flow;
-        }
-    }
-    printf("%d\n",ans);
+    printf("%d\n",match(n));
 }
